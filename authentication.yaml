@@ -1,0 +1,92 @@
+version: '3'
+
+services:
+  authenticationDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+    volumes:
+    - dbdata:/var/lib/mysql
+    networks:
+      - authnet
+  authenticationdbmigration:
+    image: authenticationdbmigration
+    environment:
+      - DATABASE_URL=authenticationDB
+    depends_on:
+      authenticationDB:
+        condition: service_healthy
+    networks:
+      - authnet
+  authentication:
+    image: authentication
+    environment:
+      - DATABASE_URL=authenticationDB
+    depends_on:
+      - authenticationdbmigration
+      - redis
+    ports:
+      - 5002:5002
+    networks:
+      - authnet
+
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - authnet
+      - storenet
+
+
+
+  storeDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+    volumes:
+      - storedb:/var/lib/mysql
+    networks:
+      - storenet
+  storedbmigration:
+    image: storedbmigration
+    environment:
+      - DATABASE_URL=storeDB
+    depends_on:
+      storeDB:
+        condition: service_healthy
+    networks:
+      - storenet
+
+  #container for every type of user
+  owner:
+    image: owner
+    environment:
+      - DATABASE_URL=storeDB
+    depends_on:
+      - storedbmigration
+      - redis
+    ports:
+      - 5003:5003
+    networks:
+      - storenet
+
+
+volumes:
+  #for authentication
+  dbdata:
+  #for store
+  storedb:
+
+networks:
+  authnet:
+  storenet:
