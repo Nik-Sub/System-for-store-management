@@ -6,6 +6,7 @@ from store.configuration import Configuration
 from store.models import database, Product, Category, ProductCategory
 from redis import Redis
 
+
 import jwt
 
 
@@ -124,6 +125,8 @@ def addProduct ( ):
     return response
 
 
+
+
 jwtManager = JWTManager ( application )
 
 deleted = [ ]
@@ -147,10 +150,10 @@ def listener ( ):
 
 
 
-@application.route("/ispisiUsere", methods=["GET"])
+@application.route("/ispisiProizvode", methods=["GET"])
 def ispisiProducte():
     return jsonify(employees=[str(product) for product in Product.query.all()])
-@application.route("/ispisiRole", methods=["GET"])
+@application.route("/ispisiKategorije", methods=["GET"])
 def ispisiRole():
     return jsonify(employees=[str(role) for role in Category.query.all()])
 
