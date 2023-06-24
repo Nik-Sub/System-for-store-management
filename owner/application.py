@@ -75,7 +75,7 @@ def addProduct ( ):
         name = data[1]
         price = data[2]
 
-        if (int(price) <= 0):
+        if (float(price) <= 0):
             data = {
                 "message": f"Incorrect price on line {cnt}.”"
             }
@@ -94,7 +94,7 @@ def addProduct ( ):
             response.status_code = 400
             return response
 
-        newProduct = Product(name, int(price))
+        newProduct = Product(name, float(price))
         products.append(newProduct)
         categoriesForProducts.append(categories)
 

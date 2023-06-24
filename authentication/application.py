@@ -19,10 +19,6 @@ application = Flask ( __name__ )
 application.config.from_object ( Configuration )
 database.init_app ( application )
 
-#for jwtDB
-# application.config.from_object( ConfigurationJWT)
-# databaseJWT.init_app(application)
-
 @application.route ( "/register_customer", methods=["POST"] )
 def registerCustomer ( ):
 
@@ -286,6 +282,7 @@ def login ( ):
         return response
 
     claims = {
+            "id" : user.id,
             "email" : user.email,
             "forename": user.forename,
             "surname": user.surname,
