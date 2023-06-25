@@ -2,13 +2,15 @@ from flask import request, Response, jsonify, Flask, make_response
 from flask_jwt_extended import create_access_token, create_refresh_token, JWTManager, jwt_required, get_jwt_identity
 
 import os
-
+import subprocess
 
 from redis import Redis
 from sparkConf import Configuration
+from pyspark.sql.functions import count, when, sum
 
 import jwt
 from pyspark.sql import SparkSession
+from store.configuration import Configuration as ConfigurationDB, databaseUrl
 
 
 application = Flask ( __name__ )
@@ -31,27 +33,72 @@ def banned_check ( function ):
 @banned_check
 def productStatistics():
 
-    builder = SparkSession.builder.appName("Simple PySpark")
-
+    builder = SparkSession.builder.appName("Statistics")
     spark = builder.getOrCreate()
 
-    data = [
-        "I love python",
-        "I love Spark",
-        "I hate Spark"
-    ]
 
-    rdd = spark.sparkContext.parallelize(data)
+    productsFrame = spark.read \
+        .format("jdbc") \
+        .option("driver", "com.mysql.cj.jdbc.Driver") \
+        .option("url", f"jdbc:mysql://{databaseUrl}:3306/dbstore") \
+        .option("dbtable", "dbstore.product") \
+        .option("user", "root") \
+        .option("password", "root") \
+        .load()
 
-    result = rdd.filter(lambda item: "Spark" in item).collect()
+    productOrderFrame = spark.read \
+        .format("jdbc") \
+        .option("driver", "com.mysql.cj.jdbc.Driver") \
+        .option("url", f"jdbc:mysql://{databaseUrl}:3306/dbstore") \
+        .option("dbtable", "dbstore.product_order") \
+        .option("user", "root") \
+        .option("password", "root") \
+        .load()
 
-    spark.stop()
-    return jsonify(result)
+    orderOfCustomerframe = spark.read \
+        .format("jdbc") \
+        .option("driver", "com.mysql.cj.jdbc.Driver") \
+        .option("url", f"jdbc:mysql://{databaseUrl}:3306/dbstore") \
+        .option("dbtable", "dbstore.order_of_customer") \
+        .option("user", "root") \
+        .option("password", "root") \
+        .load()
+
+    result = productsFrame.join(
+        productOrderFrame,
+        productOrderFrame["productId"] == productsFrame["id"]
+    ).join(
+        orderOfCustomerframe,
+        orderOfCustomerframe["id"] == productOrderFrame["orderId"]
+    ).groupBy(productsFrame["id"], productsFrame["name"]).agg(
+    productsFrame["name"].alias("productName"),
+    sum(when(orderOfCustomerframe["status"] == "cekanje", productOrderFrame["quantity"])).alias("cekanje_sum"),
+    sum(when(orderOfCustomerframe["status"] == "izvrsena", productOrderFrame["quantity"])).alias("izvrsena_sum")
+    )
+
+    statisticsInTableFormat = result.select("productName", "cekanje_sum", "izvrsena_sum").collect()
+
+    statistics = []
+    for row in statisticsInTableFormat:
+
+        statistics.append({
+            "name": row.productName,
+            "sold": row.izvrsena_sum if row.izvrsena_sum != None else 0,
+            "waiting": row.cekanje_sum if row.cekanje_sum != None else 0
+
+        })
+
+    data = {
+        "statistics": statistics
+    }
+    response = jsonify(data)
+    response.status_code = 200
+    return response
 
 
-jwtManager = JWTManager ( application )
 
-deleted = [ ]
+
+
 jwtManager = JWTManager ( application )
 
 deleted = [ ]

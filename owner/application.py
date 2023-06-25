@@ -19,8 +19,15 @@ application.config.from_object ( Configuration )
 database.init_app ( application )
 
 def banned_check ( function ):
-    @jwt_required ( )
     def wrapper ( *args, **kwargs ):
+        token = request.headers.get('Authorization')
+        if (token == None):
+            data = {
+                "message": "Missing Authorization header"
+            }
+            response = jsonify(data)
+            response.status_code = 400
+            return response
         jwt = request.headers.get('Authorization').split()[1]
         if ( jwt not in deleted ):
             return function ( *args, **kwargs )
@@ -33,15 +40,6 @@ def banned_check ( function ):
 @application.route ( "/update", methods=["POST"] )
 @banned_check
 def addProduct ( ):
-    token = request.headers.get('Authorization')
-    if (token == None):
-        data = {
-            "message": "Missing Authorization header"
-        }
-        response = jsonify(data)
-        response.status_code = 400
-        return response
-
 
     #citanje iz fajla iz requesta
     file = request.files["file"]
@@ -166,4 +164,4 @@ if ( __name__ == "__main__" ):
     Thread ( target = listener ).start ( )
 
 
-    application.run ( debug = True, host="0.0.0.0", port=5003 )
+    application.run ( debug = True, host="0.0.0.0", port=5001 )

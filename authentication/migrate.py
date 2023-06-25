@@ -17,9 +17,10 @@ database.init_app ( application );
 migrateObject.init_app(application, database)
 
 with application.app_context ( ) as context:
-    init();
-    migrate(message="Production migration");
-    upgrade();
+    # init();
+    # migrate(message="Production migration");
+    # upgrade();
+    database.create_all()
 
     ownerRole = Role ( name = "owner" );
     userRole = Role ( name = "user" );

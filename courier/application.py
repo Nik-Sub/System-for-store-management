@@ -39,8 +39,15 @@ def listener ( ):
 
 def banned_check ( fn ):
     @wraps(fn)  # Preserve the original function's name and attributes
-    @jwt_required()
     def wrapper ( *args, **kwargs ):
+        token = request.headers.get('Authorization')
+        if (token == None):
+            data = {
+                "message": "Missing Authorization header"
+            }
+            response = jsonify(data)
+            response.status_code = 400
+            return response
         jwt = request.headers.get('Authorization').split()[1]
         if ( jwt not in deleted ):
             return fn ( *args, **kwargs )
@@ -110,4 +117,4 @@ if ( __name__ == "__main__" ):
     Thread ( target = listener ).start ( )
 
 
-    application.run ( debug = True, host="0.0.0.0", port=5006 )
+    application.run ( debug = True, host="0.0.0.0", port=5003 )
