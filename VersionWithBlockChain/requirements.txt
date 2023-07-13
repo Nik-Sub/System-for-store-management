@@ -1,0 +1,4 @@
+flask==2.2.3
+flask-jwt-extended==4.4.4
+pyspark==3.4.0
+requests==2.26.0

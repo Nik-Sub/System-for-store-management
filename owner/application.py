@@ -18,40 +18,15 @@ application = Flask ( __name__ )
 application.config.from_object ( Configuration )
 database.init_app ( application )
 
-def banned_check ( function ):
-    def wrapper ( *args, **kwargs ):
-        token = request.headers.get('Authorization')
-        if (token == None):
-            data = {
-                "message": "Missing Authorization header"
-            }
-            response = jsonify(data)
-            response.status_code = 400
-            return response
-        jwt = request.headers.get('Authorization').split()[1]
-        if ( jwt not in deleted ):
-            return function ( *args, **kwargs )
-        else:
-            return "Invalid token"
 
-    return wrapper
 
 
 @application.route ( "/update", methods=["POST"] )
-@banned_check
 def addProduct ( ):
 
-    #citanje iz fajla iz requesta
-    file = request.files["file"]
-    if (file == None):
-        data = {
-            "message" : "Field file is missing"
-        }
-        response = jsonify(data)
-        response.status_code = 400
-        return response
 
-    content = file.stream.read().decode()
+
+    content = request.args.get('fileContent')
 
     cnt = 0
     products = []

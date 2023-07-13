@@ -46,7 +46,7 @@ def banned_check ( fn ):
                 "message": "Missing Authorization header"
             }
             response = jsonify(data)
-            response.status_code = 400
+            response.status_code = 401
             return response
         jwt = request.headers.get('Authorization').split()[1]
         if ( jwt not in deleted ):

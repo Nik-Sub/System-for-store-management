@@ -87,7 +87,7 @@ def collectOrder():
             "message" : "Missing order id."
         }
         response = jsonify(data)
-        response.status_code = 400
+        response.status_code = 401
         return response
 
     if (idOrder <= 0 or OrderOfCustomer.query.filter(OrderOfCustomer.id == idOrder).first() == None or OrderOfCustomer.query.filter(OrderOfCustomer.status == "cekanje", OrderOfCustomer.id == idOrder).first() == None):

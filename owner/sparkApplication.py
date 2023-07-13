@@ -1,8 +1,9 @@
 from flask import request, Response, jsonify, Flask, make_response
 from flask_jwt_extended import create_access_token, create_refresh_token, JWTManager, jwt_required, get_jwt_identity
-
+from functools import wraps
 import os
 import subprocess
+import requests
 
 from redis import Redis
 from sparkConf import Configuration
@@ -18,8 +19,16 @@ application.config.from_object ( Configuration )
 
 
 def banned_check ( function ):
-    @jwt_required ( )
+    @wraps(function)  # Preserve the original function's name and attributes
     def wrapper ( *args, **kwargs ):
+        token = request.headers.get('Authorization')
+        if (token == None):
+            data = {
+                "message": "Missing Authorization header"
+            }
+            response = jsonify(data)
+            response.status_code = 401
+            return response
         jwt = request.headers.get('Authorization').split()[1]
         if ( jwt not in deleted ):
             return function ( *args, **kwargs )
@@ -27,6 +36,31 @@ def banned_check ( function ):
             return "Invalid token"
 
     return wrapper
+
+
+@application.route ( "/update", methods=["POST"] )
+
+def addProduct ( ):
+    # citanje iz fajla iz requesta
+    file = request.files["file"]
+    if (file == None):
+        data = {
+            "message": "Field file is missing"
+        }
+        response = jsonify(data)
+        response.status_code = 400
+        return response
+    fileContent = file.stream.read().decode()
+
+    token = request.headers.get('Authorization')
+    headers = {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+    }
+    response = requests.post("http://owner:5001/update", headers = headers, fileContent=fileContent)
+
+    flask_response = Response(response.content, status=response.status_code)
+    return flask_response
 
 
 @application.route("/product_statistics", methods=["GET"])
