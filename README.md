@@ -1,4 +1,4 @@
-# iepProjekat
+# System for store management
 System for store management | Python, Solidity 2023
 • System is separeted in 3 web services, for owner, customer and courier.
 • Every service has its own .dockerfile. They are all connected via one .yaml file which is running on Docker platform.
