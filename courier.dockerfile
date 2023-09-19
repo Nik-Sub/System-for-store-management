@@ -7,6 +7,7 @@ COPY courier/application.py ./application.py
 COPY courier/requirements.txt ./requirements.txt
 COPY store/configuration.py store/configuration.py
 COPY store/models.py store/models.py
+COPY solidity solidity
 
 RUN pip install -r ./requirements.txt
 

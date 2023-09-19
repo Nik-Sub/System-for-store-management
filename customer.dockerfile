@@ -7,6 +7,7 @@ COPY customer/application.py ./application.py
 COPY customer/requirements.txt ./requirements.txt
 COPY store/configuration.py store/configuration.py
 COPY store/models.py store/models.py
+COPY solidity solidity
 
 RUN pip install -r ./requirements.txt
 

@@ -28,20 +28,10 @@ services:
       - DATABASE_URL=authenticationDB
     depends_on:
       - authenticationdbmigration
-      - redis
     ports:
       - 5000:5000
     networks:
       - authnet
-
-
-  redis:
-    image: redis
-    ports:
-      - 6379:6379
-    networks:
-      - authnet
-      - storenet
 
 
 
@@ -74,18 +64,18 @@ services:
       - DATABASE_URL=storeDB
     depends_on:
       - storedbmigration
-      - redis
     ports:
-      - 5001:5001
+      - 5004:5004
     networks:
       - storenet
   customer:
     image: customer
     environment:
       - DATABASE_URL=storeDB
+      - GAN=ganache-cli
     depends_on:
       - storedbmigration
-      - redis
+      - ganache-cli
     ports:
       - 5002:5002
     networks:
@@ -94,9 +84,10 @@ services:
     image: courier
     environment:
       - DATABASE_URL=storeDB
+      - GAN=ganache-cli
     depends_on:
       - storedbmigration
-      - redis
+      - ganache-cli
     ports:
       - 5003:5003
     networks:
@@ -153,10 +144,19 @@ services:
       - DATABASE_URL=storeDB
       - SPARK_SUBMIT_ARGS=--driver-class-path /app/mysql-connector-j-8.0.33.jar --jars /app/mysql-connector-j-8.0.33.jar
     ports:
-      - 5004:5004
+      - 5001:5001
     networks:
       - storenet
-
+  ganache-cli:
+    image: trufflesuite/ganache-cli
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "ganache", "8545" ]
+      timeout: 10s
+      retries: 10
+    ports:
+      - "8545:8545"
+    networks:
+      - storenet
 
 volumes:
   #for authentication

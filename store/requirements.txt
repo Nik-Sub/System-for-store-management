@@ -1,9 +1,8 @@
 flask==2.2.3
+flask-sqlalchemy==3.0.3
 flask-migrate==4.0.4
 flask-jwt-extended==4.4.4
 sqlalchemy-utils
 pymysql==1.0.2
 cryptography
-redis==4.5.4
-#sqlalchemy
-flask-sqlalchemy==3.0.3
+sqlalchemy

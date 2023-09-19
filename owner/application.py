@@ -4,7 +4,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, JWTMan
 
 from store.configuration import Configuration
 from store.models import database, Product, Category, ProductCategory
-from redis import Redis
+
 
 
 import jwt
@@ -18,15 +18,19 @@ application = Flask ( __name__ )
 application.config.from_object ( Configuration )
 database.init_app ( application )
 
-
-
+def isFloat(string):
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
 
 @application.route ( "/update", methods=["POST"] )
+# @banned_check
 def addProduct ( ):
 
 
-
-    content = request.args.get('fileContent')
+    content = request.form.get('content')
 
     cnt = 0
     products = []
@@ -36,7 +40,7 @@ def addProduct ( ):
 
         if (len(data) != 3):
             data = {
-                "message": f"Incorrect number of values on line {cnt}.”"
+                "message": f"Incorrect number of values on line {cnt}."
             }
             response = jsonify(data)
             response.status_code = 400
@@ -48,9 +52,9 @@ def addProduct ( ):
         name = data[1]
         price = data[2]
 
-        if (float(price) <= 0):
+        if (not isFloat(price) or float(price) <= 0):
             data = {
-                "message": f"Incorrect price on line {cnt}.”"
+                "message": f"Incorrect price on line {cnt}."
             }
             response = jsonify(data)
             response.status_code = 400
@@ -61,7 +65,7 @@ def addProduct ( ):
         product = Product.query.filter(Product.name == name).first()
         if (product != None):
             data = {
-                "message": f"Product {name} already exists"
+                "message": f"Product {name} already exists."
             }
             response = jsonify(data)
             response.status_code = 400
@@ -102,22 +106,7 @@ def addProduct ( ):
 
 jwtManager = JWTManager ( application )
 
-deleted = [ ]
 
-from redis import Redis
-def listener ( ):
-    with Redis ( host = "redis", port = 6379, db = 0 ) as redis:
-        pubsub = redis.pubsub ( )
-        pubsub.subscribe ( "channel" )
-
-        first = True
-        for message in pubsub.listen ( ):
-            if ( first ):
-                first = False
-                continue
-
-            token = message["data"].decode ( )
-            deleted.append ( token )
 
 
 
@@ -132,11 +121,7 @@ def ispisiRole():
 
 from threading import Thread
 if ( __name__ == "__main__" ):
-    with Redis ( host = "redis", port = 6379, db = 0 ) as redis:
-        list = redis.lrange ( "banned", 0, -1 )
-        banned = [item.decode ( ) for item in list]
-
-    Thread ( target = listener ).start ( )
 
 
-    application.run ( debug = True, host="0.0.0.0", port=5001 )
+
+    application.run ( debug = True, host="0.0.0.0", port=5004 )

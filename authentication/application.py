@@ -4,10 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 from configuration import Configuration
 from models import User, database, Role, UserRole
-from redis import Redis
 
 import jwt
 
+import re
 
 
 
@@ -22,83 +22,94 @@ database.init_app ( application )
 @application.route ( "/register_customer", methods=["POST"] )
 def registerCustomer ( ):
 
-    email = request.json["email"]
-    password = request.json["password"]
-    forename = request.json["forename"]
-    surname = request.json["surname"]
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+    forename = request.json.get('forename', None)
+    surname = request.json.get('surname', None)
 
     user = User.query.filter(User.email == email).first()
 
     if (user != None):
         data = {
-            "message" : "Email already exists"
+            "message" : "Email already exists."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
 
-    if (len(email) == 0):
+    if (forename == None or len(forename) == 0):
         data = {
-            "message": "Field email is missing"
-        }
-        response = jsonify(data)
-        response.status_code = 400
-        return response
-    if (len(password) == 0):
-        data = {
-            "message": "Field password is missing"
+            "message": "Field forename is missing."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
 
-    if (len(forename) == 0):
+    if (surname == None or len(surname) == 0):
         data = {
-            "message": "Field forename is missing"
+            "message": "Field surname is missing."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
 
-    if (len(surname) == 0):
+    if (email == None or len(email) == 0):
         data = {
-            "message": "Field surname is missing"
+            "message": "Field email is missing."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
+    if (password == None or len(password) == 0):
+        data = {
+            "message": "Field password is missing."
+        }
+        response = jsonify(data)
+        response.status_code = 400
+        return response
+
+
+
+    email = email.replace(" ", "")
+    password = password.replace(" ", "")
+    forename = forename.replace(" ", "")
+    surname = surname.replace(" ", "")
+
+    email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w{3,}$'
+
+
 
     #check
-    emailBad = len(email) == 0 or len(email) > 256;
+    emailBad = len(email) == 0 or len(email) > 256 or not (re.match(email_pattern, email))
     passwordBad = len(password) <8 or len(password) > 256;
-    forenameBad = len(forename) <8 or len(forename) > 256;
-    surnameBad = len(surname) <8 or len(surname) > 256;
+    forenameBad = len(forename) > 256;
+    surnameBad = len(surname) > 256;
 
 
     if (emailBad):
         data = {
-            "message": "Invalid email"
+            "message": "Invalid email."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
     if (passwordBad):
         data = {
-            "message": "Invalid password"
+            "message": "Invalid password."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
     if (forenameBad):
         data = {
-            "message": "Invalid forename"
+            "message": "Invalid forename."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
     if (surnameBad):
         data = {
-            "message": "Invalid surname"
+            "message": "Invalid surname."
         }
         response = jsonify(data)
         response.status_code = 400
@@ -114,7 +125,7 @@ def registerCustomer ( ):
     database.session.add ( new_user )
     database.session.commit ( )
 
-    role = Role.query.filter ( Role.name == "user" ).first ( )
+    role = Role.query.filter ( Role.name == "customer" ).first ( )
 
     user_role = UserRole (
         user_id = new_user.id,
@@ -125,7 +136,7 @@ def registerCustomer ( ):
     database.session.commit ( )
 
     data = {
-        "message": "Created customer"
+        "message": "Created customer."
     }
     response = jsonify(data)
     response.status_code = 200
@@ -133,82 +144,91 @@ def registerCustomer ( ):
 
 @application.route ( "/register_courier", methods=["POST"] )
 def registerCourier ( ):
-    email = request.json["email"]
-    password = request.json["password"]
-    forename = request.json["forename"]
-    surname = request.json["surname"]
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+    forename = request.json.get('forename', None)
+    surname = request.json.get('surname', None)
 
     user = User.query.filter(User.email == email).first()
 
     if (user != None):
         data = {
-            "message": "Email already exists"
+            "message": "Email already exists."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
 
-    if (len(email) == 0):
+    if (forename == None or len(forename) == 0):
         data = {
-            "message": "Field email is missing"
-        }
-        response = jsonify(data)
-        response.status_code = 400
-        return response
-    if (len(password) == 0):
-        data = {
-            "message": "Field password is missing"
+            "message": "Field forename is missing."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
 
-    if (len(forename) == 0):
+    if (surname == None or len(surname) == 0):
         data = {
-            "message": "Field forename is missing"
+            "message": "Field surname is missing."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
 
-    if (len(surname) == 0):
+    if (email == None or len(email) == 0):
         data = {
-            "message": "Field surname is missing"
+            "message": "Field email is missing."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
+    if (password == None or len(password) == 0):
+        data = {
+            "message": "Field password is missing."
+        }
+        response = jsonify(data)
+        response.status_code = 400
+        return response
+
+
+    email = email.replace(" ", "")
+    password = password.replace(" ", "")
+    forename = forename.replace(" ", "")
+    surname = surname.replace(" ", "")
+
+    email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w{3,}$'
+
 
     # check
-    emailBad = len(email) == 0 or len(email) > 256;
+    emailBad = len(email) == 0 or len(email) > 256 or not (re.match(email_pattern, email))
     passwordBad = len(password) < 8 or len(password) > 256;
-    forenameBad = len(forename) < 8 or len(forename) > 256;
-    surnameBad = len(surname) < 8 or len(surname) > 256;
+    forenameBad = len(forename) > 256;
+    surnameBad = len(surname) > 256;
 
     if (emailBad):
         data = {
-            "message": "Invalid email"
+            "message": "Invalid email."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
     if (passwordBad):
         data = {
-            "message": "Invalid password"
+            "message": "Invalid password."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
     if (forenameBad):
         data = {
-            "message": "Invalid forename"
+            "message": "Invalid forename."
         }
         response = jsonify(data)
         response.status_code = 400
         return response
     if (surnameBad):
         data = {
-            "message": "Invalid surname"
+            "message": "Invalid surname."
         }
         response = jsonify(data)
         response.status_code = 400
@@ -235,7 +255,7 @@ def registerCourier ( ):
     database.session.commit()
 
     data = {
-        "message": "Created customer"
+        "message": "Created customer."
     }
     response = jsonify(data)
     response.status_code = 200
@@ -245,28 +265,40 @@ jwtManager = JWTManager ( application )
 
 @application.route ( "/login", methods = ["POST"] )
 def login ( ):
-    email    = request.json["email"]
-    password = request.json["password"]
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
 
-    emailBad = len(email) == 0 or len(email) > 256;
+    if (email == None or len(email) == 0):
+        data = {
+            "message": "Field email is missing."
+        }
+        response = jsonify(data)
+        response.status_code = 400
+        return response
+    if (password == None or len(password) == 0):
+        data = {
+            "message": "Field password is missing."
+        }
+        response = jsonify(data)
+        response.status_code = 400
+        return response
+
+
+    # email = email.replace(" ", "")
+    # password = password.replace(" ", "")
+
+    email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w{3,}$'
+
+
+    # check
+    emailBad = len(email) == 0 or len(email) > 256 or not (re.match(email_pattern, email))
+
+
+
+
     if (emailBad):
         data = {
-            "message": "Invalid email"
-        }
-        response = jsonify(data)
-        response.status_code = 400
-        return response
-
-    if (len(email) == 0):
-        data = {
-            "message": "Field email is missing"
-        }
-        response = jsonify(data)
-        response.status_code = 400
-        return response
-    if (len(password) == 0):
-        data = {
-            "message": "Field password is missing"
+            "message": "Invalid email."
         }
         response = jsonify(data)
         response.status_code = 400
@@ -275,7 +307,7 @@ def login ( ):
     user = User.query.filter(User.email == email, User.password == password).first()
     if (user == None):
         data = {
-            "message": "Invalid credentials"
+            "message": "Invalid credentials."
         }
         response = jsonify(data)
         response.status_code = 400
@@ -289,57 +321,33 @@ def login ( ):
             "roles": [ role.name for role in user.roles ]
     }
 
-    access_token  = create_access_token ( identity = user.email, additional_claims = claims )
+    accessToken  = create_access_token ( identity = user.email, additional_claims = claims )
     refresh_token = create_refresh_token ( identity = user.email, additional_claims = claims )
 
-    return jsonify ( access_token = access_token, refresh_token = refresh_token );
+    return jsonify ( accessToken = accessToken)
 
-#redis nam treba za cuvanje invalid tokena
-def update ( token ):
-    with Redis ( host = "redis", port = 6379, db = 0 ) as redis:
-        redis.lpush ( "banned", token )
-        redis.publish ( "channel", token )
 
-deleted = [ ]
 
-from redis import Redis
-def listener ( ):
-    with Redis ( host = "redis", port = 6379, db = 0 ) as redis:
-        pubsub = redis.pubsub ( )
-        pubsub.subscribe ( "channel" )
-
-        first = True
-        for message in pubsub.listen ( ):
-            if ( first ):
-                first = False
-                continue
-
-            token = message["data"].decode ( )
-            deleted.append ( token )
 
 def banned_check ( function ):
-    @jwt_required ( )
     def wrapper ( *args, **kwargs ):
-        jwt = request.headers.get('Authorization').split()[1]
-        if ( jwt not in deleted ):
-            return function ( *args, **kwargs )
-        else:
-            return "Invalid token"
+        if ('Authorization' not in request.headers):
+            data = {
+                "msg": "Missing Authorization Header"
+            }
+            response = jsonify(data)
+            response.status_code = 401
+            return response
+
+        return function ( *args, **kwargs )
+
 
     return wrapper
 
 
-@application.route("/delete", methods=["GET"])
+@application.route("/delete", methods=["POST"])
 @banned_check
 def brisanjeSvogNaloga():
-    token = request.headers.get('Authorization')
-    if (token == None):
-        data = {
-            "message": "Missing Authorization header"
-        }
-        response = jsonify(data)
-        response.status_code = 400
-        return response
 
     token = request.headers.get('Authorization').split()[1]
 
@@ -349,7 +357,7 @@ def brisanjeSvogNaloga():
     user = User.query.filter(User.email == email).first();
     if (user == None):
         data = {
-            "message": "Unknown user"
+            "message": "Unknown user."
         }
         response = jsonify(data)
         response.status_code = 400
@@ -358,10 +366,10 @@ def brisanjeSvogNaloga():
     database.session.delete(user)
     database.session.commit()
 
-    update(token)
+    # update(token)
 
     response = make_response()
-    response.status_code = 400
+    response.status_code = 200
     return response
 
 
@@ -374,11 +382,5 @@ def ispisiRole():
 
 from threading import Thread
 if ( __name__ == "__main__" ):
-    with Redis ( host = "redis", port = 6379, db = 0 ) as redis:
-        list = redis.lrange ( "banned", 0, -1 )
-        banned = [item.decode ( ) for item in list]
-
-    Thread ( target = listener ).start ( )
-
 
     application.run ( debug = True, host="0.0.0.0", port=5000 )

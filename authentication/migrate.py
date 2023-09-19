@@ -23,7 +23,7 @@ with application.app_context ( ) as context:
     database.create_all()
 
     ownerRole = Role ( name = "owner" );
-    userRole = Role ( name = "user" );
+    userRole = Role ( name = "customer" );
     courierRole = Role(name="courier");
 
     database.session.add ( ownerRole );

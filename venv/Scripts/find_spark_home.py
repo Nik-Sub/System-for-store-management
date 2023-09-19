@@ -1,4 +1,4 @@
-#!E:\ETF\6.semestar\IEP\VEZBE\PROJEKAT\venv\Scripts\python.exe
+#!E:\ETF\6.semestar\IEP\VEZBE\provera\venv\Scripts\python.exe
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more

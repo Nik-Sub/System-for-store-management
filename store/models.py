@@ -71,3 +71,15 @@ class OrderOfCustomer (database.Model):
     def __repr__(self):
         return str(self.id) + " " + str(self.price) + " " + self.status + " " + self.createdAt.strftime("%Y-%m-%dT%H:%M:%SZ") + " " + str(self.userId) + self.userEmail
 
+
+
+class Contract(database.Model):
+    id = database.Column(database.Integer, primary_key=True, autoincrement=True)
+    address = database.Column(database.String(255), unique=True)
+    abi = database.Column(database.Text)
+    idOrder = database.Column ( database.Integer, database.ForeignKey ( "order_of_customer.id" ), nullable = False );
+
+    def __init__(self, address, abi, idOrder):
+        self.address = address
+        self.abi = abi
+        self.idOrder = idOrder
